@@ -1,0 +1,21 @@
+# Railway deployment config for the Flask backend.
+# Deploy this from the /backend directory (set Root Directory to "backend" in Railway).
+# Railway auto-detects the Dockerfile.
+
+[build]
+dockerfilePath = "Dockerfile"
+
+[deploy]
+healthcheckPath   = "/api/health"
+healthcheckTimeout = 300
+restartPolicyType  = "on_failure"
+restartPolicyMaxRetries = 10
+
+# Environment variables to set in Railway dashboard:
+#   SECRET_KEY    — long random string (openssl rand -hex 32)
+#   CRON_SECRET   — random string for /api/escalations/sweep
+#   DB_HOST       — from Railway MySQL service (auto-injected as MYSQLHOST)
+#   DB_USER       — MYSQLUSER
+#   DB_PASSWORD   — MYSQLPASSWORD
+#   DB_NAME       — MYSQLDATABASE
+#   FRONTEND_URL  — your Vercel frontend URL, e.g. https://fixpoint.vercel.app
