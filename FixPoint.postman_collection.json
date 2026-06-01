@@ -1,0 +1,633 @@
+{
+  "info": {
+    "name": "FixPoint API",
+    "description": "Complete REST API collection for the FixPoint hostel grievance management system. Import this collection into Postman and set the `base_url` and `token` environment variables before running requests.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "version": "1.0.0"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://127.0.0.1:5000",
+      "description": "Base URL of the Flask backend. Change to your Railway URL in production."
+    },
+    {
+      "key": "token",
+      "value": "",
+      "description": "JWT token returned from /api/auth/login or /api/auth/register. Set this after logging in."
+    }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/health",
+              "host": ["{{base_url}}"],
+              "path": ["api", "health"]
+            },
+            "description": "Verifies that the Flask server is running and reachable. No authentication required. Use this as a first step when debugging connectivity issues."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"status\": \"ok\"\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Register",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.token) {",
+                  "  pm.collectionVariables.set('token', res.token);",
+                  "  console.log('Token saved automatically.');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"full_name\": \"Keshav Swami\",\n  \"email\": \"keshav@iitj.ac.in\",\n  \"password\": \"securepassword\",\n  \"role\": \"student\",\n  \"roll_number\": \"B21CS001\",\n  \"hostel_name\": \"BH1\",\n  \"room_number\": \"101\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/register",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "register"]
+            },
+            "description": "Creates a new user account. The JWT token returned is saved automatically to the collection variable `token` via the test script.\n\nRequired fields for all roles: full_name, email, password, role.\n\nAdditional fields for students: roll_number, hostel_name, room_number, floor.\n\nAdditional fields for staff and housekeeping: department, phone_number.\n\nValid roles: student, staff, housekeeping, caretaker."
+          },
+          "response": [
+            {
+              "name": "201 Created",
+              "status": "CREATED",
+              "code": 201,
+              "body": "{\n  \"token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\",\n  \"role\": \"student\",\n  \"name\": \"Keshav Swami\",\n  \"email\": \"keshav@iitj.ac.in\"\n}"
+            },
+            {
+              "name": "400 Bad Request",
+              "status": "BAD REQUEST",
+              "code": 400,
+              "body": "{\n  \"error\": \"Missing required fields: email, password\"\n}"
+            },
+            {
+              "name": "409 Conflict",
+              "status": "CONFLICT",
+              "code": 409,
+              "body": "{\n  \"error\": \"An account with this email already exists\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.token) {",
+                  "  pm.collectionVariables.set('token', res.token);",
+                  "  console.log('Token saved. Role:', res.role);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"keshav@iitj.ac.in\",\n  \"password\": \"securepassword\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "login"]
+            },
+            "description": "Authenticates an existing user and returns a JWT token. The token is saved automatically to the collection variable `token` via the test script. All subsequent requests use this token in the Authorization header."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\",\n  \"role\": \"student\",\n  \"name\": \"Keshav Swami\",\n  \"email\": \"keshav@iitj.ac.in\",\n  \"hostel_name\": \"BH1\",\n  \"room_number\": \"101\"\n}"
+            },
+            {
+              "name": "401 Unauthorized",
+              "status": "UNAUTHORIZED",
+              "code": 401,
+              "body": "{\n  \"error\": \"Invalid email or password\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get Current User",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/auth/me",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "me"]
+            },
+            "description": "Returns the full profile of the currently authenticated user. Useful for verifying a token is valid and fetching user details on application load."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"id\": 1,\n  \"full_name\": \"Keshav Swami\",\n  \"email\": \"keshav@iitj.ac.in\",\n  \"role\": \"student\",\n  \"hostel_name\": \"BH1\",\n  \"room_number\": \"101\",\n  \"floor\": null,\n  \"department\": null,\n  \"phone_number\": null\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Complaints",
+      "item": [
+        {
+          "name": "Create Complaint",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"category\": \"Electrical\",\n  \"issue\": \"Fan not working in room\",\n  \"details\": \"The ceiling fan has not been working for two days. Room is on the third floor and gets very hot.\",\n  \"priority\": \"urgent\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/complaints",
+              "host": ["{{base_url}}"],
+              "path": ["api", "complaints"]
+            },
+            "description": "Creates a new complaint. Restricted to students only. The student_email is derived from the JWT token, not from the request body. On creation, all caretakers are automatically notified.\n\nValid priority values: normal, urgent.\nValid categories: Electrical, Plumbing, Civil, Carpentry, Network, Other."
+          },
+          "response": [
+            {
+              "name": "201 Created",
+              "status": "CREATED",
+              "code": 201,
+              "body": "{\n  \"complaint_id\": 1\n}"
+            },
+            {
+              "name": "400 Bad Request",
+              "status": "BAD REQUEST",
+              "code": 400,
+              "body": "{\n  \"error\": \"Issue description is required\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get Complaints",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/complaints",
+              "host": ["{{base_url}}"],
+              "path": ["api", "complaints"]
+            },
+            "description": "Fetches complaints filtered by the role of the authenticated user. Students receive only their own complaints. Staff receive complaints in their department (matched by the department field on their user profile). Caretakers receive all complaints across all hostels."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "body": "[\n  {\n    \"complaint_id\": 1,\n    \"student_email\": \"keshav@iitj.ac.in\",\n    \"category\": \"Electrical\",\n    \"issue\": \"Fan not working in room\",\n    \"details\": \"The ceiling fan has not been working for two days.\",\n    \"priority\": \"urgent\",\n    \"status\": \"Pending\",\n    \"created_at\": \"2026-05-31T10:00:00\"\n  }\n]"
+            }
+          ]
+        },
+        {
+          "name": "Update Complaint Status",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"In Progress\",\n  \"notes\": \"Assigned to electrician, will visit tomorrow morning.\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/complaints/1/status",
+              "host": ["{{base_url}}"],
+              "path": ["api", "complaints", "1", "status"]
+            },
+            "description": "Updates the status of a complaint. Restricted to staff and caretakers. Every status change is recorded in the resolution_logs table. The student is automatically notified via the notifications system.\n\nValid status values: In Progress, Pending Confirmation, Resolved, Escalated.\n\nThe intended workflow is Pending -> In Progress -> Pending Confirmation. Setting status to Pending Confirmation triggers the student to confirm or dispute."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"ok\": true\n}"
+            },
+            {
+              "name": "400 Bad Request",
+              "status": "BAD REQUEST",
+              "code": 400,
+              "body": "{\n  \"error\": \"Status must be one of: In Progress, Pending Confirmation, Resolved, Escalated\"\n}"
+            },
+            {
+              "name": "404 Not Found",
+              "status": "NOT FOUND",
+              "code": 404,
+              "body": "{\n  \"error\": \"Complaint not found\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Confirm or Dispute Resolution",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"action\": \"confirm\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/complaints/1/confirm",
+              "host": ["{{base_url}}"],
+              "path": ["api", "complaints", "1", "confirm"]
+            },
+            "description": "Allows a student to confirm or dispute a resolution. Only the student who originally raised the complaint can call this endpoint, enforced by matching the JWT email against the complaint record.\n\nSetting action to confirm moves the complaint to Resolved status and logs the confirmation.\nSetting action to dispute moves the complaint to Disputed status and creates an escalation log entry for the caretaker.\n\nValid action values: confirm, dispute."
+          },
+          "response": [
+            {
+              "name": "200 OK - Confirmed",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"ok\": true\n}"
+            },
+            {
+              "name": "200 OK - Disputed",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"ok\": true\n}"
+            }
+          ]
+        },
+        {
+          "name": "Force Resolve (Caretaker)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/complaints/1/force-resolve",
+              "host": ["{{base_url}}"],
+              "path": ["api", "complaints", "1", "force-resolve"]
+            },
+            "description": "Forcefully resolves a complaint. Restricted to caretakers only. Intended for escalated or disputed complaints that require administrative intervention. The action is logged in resolution_logs with actor_role set to caretaker."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"ok\": true\n}"
+            },
+            {
+              "name": "403 Forbidden",
+              "status": "FORBIDDEN",
+              "code": 403,
+              "body": "{\n  \"error\": \"You don't have permission to do that\"\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Housekeeping",
+      "item": [
+        {
+          "name": "Create Housekeeping Request",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"task\": \"Floor sweep\",\n  \"notes\": \"Please clean under the bed as well.\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/housekeeping",
+              "host": ["{{base_url}}"],
+              "path": ["api", "housekeeping"]
+            },
+            "description": "Creates a new housekeeping request. Restricted to students. The student's hostel, room, and floor are pulled from their profile automatically.\n\nValid task values: Bed linen change, Floor sweep, Washroom cleaning, Garbage collection, Window cleaning, Dusting."
+          },
+          "response": [
+            {
+              "name": "201 Created",
+              "status": "CREATED",
+              "code": 201,
+              "body": "{\n  \"request_id\": 1\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get Housekeeping Requests",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/housekeeping",
+              "host": ["{{base_url}}"],
+              "path": ["api", "housekeeping"]
+            },
+            "description": "Fetches housekeeping requests. Students receive only their own requests. Housekeeping staff and caretakers receive all requests across all hostels, ordered by creation date descending."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "body": "[\n  {\n    \"request_id\": 1,\n    \"student_email\": \"keshav@iitj.ac.in\",\n    \"hostel_name\": \"BH1\",\n    \"room_number\": \"101\",\n    \"floor\": null,\n    \"task\": \"Floor sweep\",\n    \"notes\": \"Please clean under the bed as well.\",\n    \"status\": \"Pending\",\n    \"created_at\": \"2026-05-31T11:00:00\"\n  }\n]"
+            }
+          ]
+        },
+        {
+          "name": "Update Housekeeping Status",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"In Progress\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/housekeeping/1/status",
+              "host": ["{{base_url}}"],
+              "path": ["api", "housekeeping", "1", "status"]
+            },
+            "description": "Updates the status of a housekeeping request. Restricted to housekeeping staff and caretakers.\n\nValid status values: In Progress, Completed."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"ok\": true\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Slots",
+      "item": [
+        {
+          "name": "Create Slot",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"visit_date\": \"2026-06-10\",\n  \"slot_time\": \"10:00 AM - 11:00 AM\",\n  \"hostel_name\": \"BH1\",\n  \"max_capacity\": 8\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/slots",
+              "host": ["{{base_url}}"],
+              "path": ["api", "slots"]
+            },
+            "description": "Creates a visit slot. Restricted to staff. The staff_id is derived from the JWT token. Students can then book against this slot by linking it to one of their open complaints."
+          },
+          "response": [
+            {
+              "name": "201 Created",
+              "status": "CREATED",
+              "code": 201,
+              "body": "{\n  \"slot_id\": 1\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get Available Slots",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/slots",
+              "host": ["{{base_url}}"],
+              "path": ["api", "slots"]
+            },
+            "description": "Returns all upcoming slots (visit_date >= today), joined with the staff member's name. Ordered by date and time ascending. Available to all authenticated roles."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "body": "[\n  {\n    \"slot_id\": 1,\n    \"staff_id\": 2,\n    \"staff_name\": \"Ramesh Kumar\",\n    \"visit_date\": \"2026-06-10\",\n    \"slot_time\": \"10:00 AM - 11:00 AM\",\n    \"hostel_name\": \"BH1\",\n    \"max_capacity\": 8,\n    \"current_bookings\": 3,\n    \"status\": \"available\",\n    \"created_at\": \"2026-06-01T09:00:00\"\n  }\n]"
+            }
+          ]
+        },
+        {
+          "name": "Book a Slot",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"complaint_id\": 1\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/slots/1/book",
+              "host": ["{{base_url}}"],
+              "path": ["api", "slots", "1", "book"]
+            },
+            "description": "Books a slot for a specific complaint. Restricted to students. The booking is linked to a complaint so staff know the context of the visit. A SELECT FOR UPDATE lock is used to prevent double-booking when concurrent requests target the same slot. The slot status is automatically set to full when current_bookings reaches max_capacity."
+          },
+          "response": [
+            {
+              "name": "201 Created",
+              "status": "CREATED",
+              "code": 201,
+              "body": "{\n  \"ok\": true\n}"
+            },
+            {
+              "name": "409 Conflict",
+              "status": "CONFLICT",
+              "code": 409,
+              "body": "{\n  \"error\": \"This slot is full\"\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Notifications",
+      "item": [
+        {
+          "name": "Get Notifications",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/notifications",
+              "host": ["{{base_url}}"],
+              "path": ["api", "notifications"]
+            },
+            "description": "Returns the 50 most recent notifications for the authenticated user, ordered by creation date descending. The frontend polls this endpoint every 30 seconds to surface real-time alerts."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "body": "[\n  {\n    \"id\": 1,\n    \"recipient_id\": 1,\n    \"complaint_id\": 1,\n    \"message\": \"Your complaint #1 has been updated to: In Progress\",\n    \"is_read\": 0,\n    \"created_at\": \"2026-05-31T12:00:00\"\n  }\n]"
+            }
+          ]
+        },
+        {
+          "name": "Mark All as Read",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/notifications/read-all",
+              "host": ["{{base_url}}"],
+              "path": ["api", "notifications", "read-all"]
+            },
+            "description": "Sets is_read to 1 for all notifications belonging to the authenticated user. Called automatically by the frontend when the notification panel is opened."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"ok\": true\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Escalations",
+      "item": [
+        {
+          "name": "Get Escalation Log",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/escalations",
+              "host": ["{{base_url}}"],
+              "path": ["api", "escalations"]
+            },
+            "description": "Returns all escalation log entries joined with complaint details. Restricted to caretakers. Entries are created either by the escalation engine (reason: Auto: 72h no action) or when a student disputes a resolution (reason: Disputed by student)."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "body": "[\n  {\n    \"id\": 1,\n    \"complaint_id\": 1,\n    \"reason\": \"Auto: 72h no action\",\n    \"escalated_at\": \"2026-06-03T10:00:00\",\n    \"issue\": \"Fan not working in room\",\n    \"category\": \"Electrical\",\n    \"status\": \"Escalated\",\n    \"student_email\": \"keshav@iitj.ac.in\"\n  }\n]"
+            }
+          ]
+        },
+        {
+          "name": "Trigger Escalation Sweep",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "X-Cron-Secret", "value": "your-cron-secret-here" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/escalations/sweep",
+              "host": ["{{base_url}}"],
+              "path": ["api", "escalations", "sweep"]
+            },
+            "description": "Manually triggers the escalation sweep. In production this is called by a Railway Cron Job every hour. Protected by the X-Cron-Secret header rather than JWT. Returns the count of complaints escalated during this sweep.\n\nIn local development, the sweep also runs automatically every hour via a background daemon thread started when app.py initialises."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"escalated\": 2\n}"
+            },
+            {
+              "name": "403 Forbidden",
+              "status": "FORBIDDEN",
+              "code": 403,
+              "body": "{\n  \"error\": \"Forbidden\"\n}"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
