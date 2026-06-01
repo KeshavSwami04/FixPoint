@@ -158,6 +158,48 @@ The system maintains a complete history of complaint activity, resolution update
 
 ---
 
+## API Documentation & Testing
+
+The backend exposes REST APIs for authentication, complaint management, scheduling, notifications, escalation handling, and role-based workflows.
+
+### API Coverage
+
+The API surface includes:
+
+* User authentication and authorization
+* Complaint creation and lifecycle management
+* Complaint assignment and status updates
+* Student resolution verification
+* Escalation and dispute handling
+* Maintenance slot management
+* Booking workflows
+* Notification management
+
+### Authentication
+
+All protected endpoints use JWT-based authentication.
+
+Role-based access control is enforced at the API layer to ensure that students, staff members, housekeeping personnel, and caretakers can only access actions permitted by their responsibilities.
+
+### API Testing
+
+Endpoints were validated using Postman collections during development to verify:
+
+* Authentication flows
+* Request validation
+* Permission enforcement
+* Workflow transitions
+* Error handling scenarios
+
+### Documentation
+
+Detailed endpoint specifications, request schemas, response formats, and authorization requirements are available in:
+
+* [API Documentation](./API.md)
+* Postman Collection (`FixPoint.postman_collection.json`)
+
+
+
 ## Database Overview
 
 Core entities include:
