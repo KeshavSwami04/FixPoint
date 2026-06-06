@@ -5,6 +5,16 @@ import { useToast } from '../components/Toast'
 
 const HOSTELS = ['BH1', 'BH2', 'BH3', 'BH4', 'GH1', 'GH2']
 
+const Field = ({ label, name, type = 'text', placeholder, value, onChange }) => (
+  <div>
+    <label className="block text-sm font-medium text-slate-300 mb-1.5">{label}</label>
+    <input
+      type={type} value={value} onChange={onChange} placeholder={placeholder}
+      className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+    />
+  </div>
+)
+
 export default function Register() {
   const { register } = useAuth()
   const navigate     = useNavigate()
@@ -34,16 +44,6 @@ export default function Register() {
     }
   }
 
-  const Field = ({ label, name, type = 'text', placeholder }) => (
-    <div>
-      <label className="block text-sm font-medium text-slate-300 mb-1.5">{label}</label>
-      <input
-        type={type} value={form[name]} onChange={set(name)} placeholder={placeholder}
-        className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-      />
-    </div>
-  )
-
   return (
     <div className="min-h-[calc(100vh-57px)] bg-slate-950 flex items-center justify-center px-4 py-10">
       <div className="w-full max-w-md">
@@ -54,9 +54,9 @@ export default function Register() {
 
         <div className="bg-slate-900 border border-slate-800 rounded-2xl p-8">
           <form onSubmit={handleSubmit} className="space-y-4">
-            <Field label="Full name *" name="full_name" placeholder="Your full name" />
-            <Field label="Email *" name="email" type="email" placeholder="you@iitj.ac.in" />
-            <Field label="Password * (min 8 chars)" name="password" type="password" placeholder="••••••••" />
+            <Field label="Full name *" name="full_name" placeholder="Your full name" value={form.full_name} onChange={set('full_name')} />
+            <Field label="Email *" name="email" type="email" placeholder="you@iitj.ac.in" value={form.email} onChange={set('email')} />
+            <Field label="Password * (min 8 chars)" name="password" type="password" placeholder="••••••••" value={form.password} onChange={set('password')} />
 
             <div>
               <label className="block text-sm font-medium text-slate-300 mb-1.5">Role</label>
@@ -69,7 +69,7 @@ export default function Register() {
             </div>
 
             {form.role === 'student' && <>
-              <Field label="Roll number" name="roll_number" placeholder="B21CS000" />
+              <Field label="Roll number" name="roll_number" placeholder="B21CS000" value={form.roll_number} onChange={set('roll_number')} />
               <div>
                 <label className="block text-sm font-medium text-slate-300 mb-1.5">Hostel</label>
                 <select value={form.hostel_name} onChange={set('hostel_name')}
@@ -78,12 +78,12 @@ export default function Register() {
                   {HOSTELS.map(h => <option key={h} value={h}>{h}</option>)}
                 </select>
               </div>
-              <Field label="Room number" name="room_number" placeholder="101" />
+              <Field label="Room number" name="room_number" placeholder="101" value={form.room_number} onChange={set('room_number')} />
             </>}
 
             {(form.role === 'staff' || form.role === 'housekeeping') && <>
-              <Field label="Department" name="department" placeholder="e.g. Electrical" />
-              <Field label="Phone number" name="phone_number" type="tel" placeholder="9876543210" />
+              <Field label="Department" name="department" placeholder="e.g. Electrical" value={form.department} onChange={set('department')} />
+              <Field label="Phone number" name="phone_number" type="tel" placeholder="9876543210" value={form.phone_number} onChange={set('phone_number')} />
             </>}
 
             <button type="submit" disabled={loading}
