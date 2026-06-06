@@ -26,7 +26,7 @@ DB_CONFIG = {
 
 CORS(app, origins=[FRONTEND_URL], supports_credentials=False)
 
-pool = pooling.MySQLConnectionPool(pool_name="fixpoint", pool_size=8, **DB_CONFIG)
+pool = pooling.MySQLConnectionPool(pool_name="fixpoint", pool_size=2, **DB_CONFIG)
 
 
 def get_db():
