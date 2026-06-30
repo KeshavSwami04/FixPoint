@@ -8,9 +8,7 @@ const HOSTELS = ['BH1', 'BH2', 'BH3', 'BH4', 'GH1', 'GH2']
 
 function Tab({ label, active, onClick }) {
   return (
-    <button onClick={onClick}
-      className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors whitespace-nowrap
-        ${active ? 'bg-blue-500 text-white' : 'text-slate-400 hover:text-white hover:bg-slate-800'}`}>
+    <button onClick={onClick} className={`tab-glass ${active ? 'active-blue' : ''}`}>
       {label}
     </button>
   )
@@ -72,26 +70,27 @@ export default function StaffDashboard() {
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-8">
-      <div className="mb-6">
+      <div className="mb-7 animate-fadeInUp">
         <h1 className="text-2xl font-bold text-white" style={{ fontFamily: 'Outfit' }}>Staff Dashboard</h1>
-        <p className="text-slate-400 text-sm mt-0.5">{user?.full_name} · {user?.department}</p>
+        <p className="text-slate-400 text-sm mt-1">{user?.full_name} · {user?.department}</p>
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-3 gap-3 mb-7">
+      <div className="grid grid-cols-3 gap-3 mb-8">
         {[
-          { label: 'Pending',     val: pending,  color: 'text-yellow-400' },
-          { label: 'In Progress', val: progress, color: 'text-blue-400' },
-          { label: 'Resolved',    val: resolved, color: 'text-emerald-400' },
-        ].map(s => (
-          <div key={s.label} className="bg-slate-900 border border-slate-800 rounded-xl p-4">
-            <div className={`text-2xl font-bold ${s.color}`} style={{ fontFamily: 'Outfit' }}>{s.val}</div>
-            <div className="text-slate-500 text-xs mt-0.5">{s.label}</div>
+          { label: 'Pending',     val: pending,  color: 'text-yellow-400', glow: 'from-yellow-400 to-amber-400' },
+          { label: 'In Progress', val: progress, color: 'text-blue-400',   glow: 'from-blue-400 to-cyan-400' },
+          { label: 'Resolved',    val: resolved, color: 'text-emerald-400', glow: 'from-emerald-400 to-teal-400' },
+        ].map((s, i) => (
+          <div key={s.label} className="glass-card p-5 relative animate-fadeInUp" style={{ animationDelay: `${i * 80}ms` }}>
+            <div className={`text-3xl font-bold ${s.color}`} style={{ fontFamily: 'Outfit' }}>{s.val}</div>
+            <div className="text-slate-500 text-xs mt-1 tracking-wide uppercase">{s.label}</div>
+            <div className={`absolute top-0 left-4 right-4 h-px bg-gradient-to-r ${s.glow} opacity-40`} />
           </div>
         ))}
       </div>
 
-      <div className="flex gap-1.5 mb-6">
+      <div className="flex gap-1.5 mb-7">
         {[['complaints','Complaints'],['my-slots','My Slots'],['new-slot','Create Slot']].map(([k, l]) => (
           <Tab key={k} label={l} active={tab === k} onClick={() => setTab(k)} />
         ))}
@@ -99,31 +98,38 @@ export default function StaffDashboard() {
 
       {/* ── Complaints ───────────────────────────────────────────── */}
       {tab === 'complaints' && (
-        <div className="space-y-3">
-          {loading && <div className="text-slate-500 text-sm">Loading…</div>}
+        <div className="space-y-3 stagger">
+          {loading && (
+            <div className="flex items-center justify-center py-12">
+              <div className="loader" />
+            </div>
+          )}
           {!loading && complaints.length === 0 && (
-            <div className="text-slate-500 text-sm py-12 text-center">No complaints for your department yet</div>
+            <div className="text-center py-16 animate-fadeInUp">
+              <div className="text-4xl mb-3">✅</div>
+              <div className="text-slate-400 text-sm">No complaints for your department yet</div>
+            </div>
           )}
           {complaints.map(c => (
-            <div key={c.complaint_id} className="bg-slate-900 border border-slate-800 rounded-xl p-5">
+            <div key={c.complaint_id} className="glass-card p-5 animate-fadeInUp">
               <div className="flex items-start justify-between gap-3 mb-3">
                 <div className="flex-1 min-w-0">
-                  <div className="flex flex-wrap items-center gap-1.5 mb-1">
-                    <span className="text-xs text-slate-600">#{c.complaint_id}</span>
+                  <div className="flex flex-wrap items-center gap-1.5 mb-1.5">
+                    <span className="text-xs text-slate-600 font-mono">#{c.complaint_id}</span>
                     {c.priority === 'urgent' && (
-                      <span className="text-xs bg-red-500/20 text-red-400 px-2 py-0.5 rounded ring-1 ring-red-500/30">Urgent</span>
+                      <span className="text-xs px-2 py-0.5 rounded bg-red-500/10 text-red-400 border border-red-500/20">⚡ Urgent</span>
                     )}
                   </div>
                   <div className="text-white font-medium">{c.issue}</div>
                   {c.details && <div className="text-slate-400 text-sm mt-0.5">{c.details}</div>}
                   <div className="text-slate-500 text-sm mt-0.5">{c.student_email}</div>
-                  <div className="text-slate-600 text-xs mt-1">{new Date(c.created_at).toLocaleString()}</div>
+                  <div className="text-slate-600 text-xs mt-1.5">{new Date(c.created_at).toLocaleString()}</div>
                 </div>
                 <StatusPill status={c.status} />
               </div>
               {NEXT_STATUS[c.status] && (
                 <button onClick={() => updateStatus(c.complaint_id, NEXT_STATUS[c.status])}
-                  className="text-sm bg-blue-500/15 hover:bg-blue-500/25 text-blue-300 px-4 py-2 rounded-lg transition-colors font-medium ring-1 ring-blue-500/30">
+                  className="action-btn action-btn-blue">
                   Mark as {NEXT_STATUS[c.status]} →
                 </button>
               )}
@@ -134,27 +140,36 @@ export default function StaffDashboard() {
 
       {/* ── My Slots ─────────────────────────────────────────────── */}
       {tab === 'my-slots' && (
-        <div className="space-y-3">
+        <div className="space-y-3 stagger">
           {slots.length === 0 && (
-            <div className="text-slate-500 text-sm py-12 text-center">
-              No slots created yet.{' '}
-              <button onClick={() => setTab('new-slot')} className="text-blue-400 hover:text-blue-300">
-                Create one →
-              </button>
+            <div className="text-center py-16 animate-fadeInUp">
+              <div className="text-4xl mb-3">📅</div>
+              <div className="text-slate-400 text-sm">
+                No slots created yet.{' '}
+                <button onClick={() => setTab('new-slot')} className="text-blue-400 hover:text-blue-300 font-medium transition-colors">
+                  Create one →
+                </button>
+              </div>
             </div>
           )}
           {slots.map(s => (
-            <div key={s.slot_id} className="bg-slate-900 border border-slate-800 rounded-xl p-5 flex items-center justify-between gap-3">
+            <div key={s.slot_id} className="glass-card p-5 flex items-center justify-between gap-3 animate-fadeInUp">
               <div>
                 <div className="text-white font-medium">{s.slot_time}</div>
                 <div className="text-slate-400 text-sm mt-0.5">{s.visit_date} · {s.hostel_name}</div>
                 <div className="text-slate-600 text-xs mt-1">{s.current_bookings}/{s.max_capacity} bookings</div>
               </div>
-              <span className={`text-xs px-2.5 py-0.5 rounded-full font-medium ring-1 ${
-                s.status === 'full'
-                  ? 'bg-red-400/15 text-red-300 ring-red-400/30'
-                  : 'bg-emerald-400/15 text-emerald-300 ring-emerald-400/30'
-              }`}>
+              <span
+                className={`text-xs px-2.5 py-1 rounded-full font-medium ring-1 ${
+                  s.status === 'full'
+                    ? 'text-red-300 ring-red-400/25'
+                    : 'text-emerald-300 ring-emerald-400/25'
+                }`}
+                style={{
+                  background: s.status === 'full' ? 'rgba(239,68,68,0.1)' : 'rgba(16,185,129,0.1)',
+                  backdropFilter: 'blur(8px)',
+                }}
+              >
                 {s.status === 'full' ? 'Full' : 'Open'}
               </span>
             </div>
@@ -164,35 +179,34 @@ export default function StaffDashboard() {
 
       {/* ── Create Slot ──────────────────────────────────────────── */}
       {tab === 'new-slot' && (
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 max-w-lg">
+        <div className="glass-card-static p-6 max-w-lg glow-blue animate-fadeInUp" style={{ borderRadius: '1.25rem' }}>
           <h2 className="text-lg font-semibold text-white mb-5" style={{ fontFamily: 'Outfit' }}>Create Visit Slot</h2>
           <form onSubmit={createSlot} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-slate-300 mb-1.5">Visit date *</label>
               <input type="date" value={sForm.visit_date} onChange={e => setSForm(f => ({ ...f, visit_date: e.target.value }))}
-                className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                className="glass-input glass-input-blue" />
             </div>
             <div>
               <label className="block text-sm font-medium text-slate-300 mb-1.5">Time slot *</label>
               <input type="text" value={sForm.slot_time} onChange={e => setSForm(f => ({ ...f, slot_time: e.target.value }))}
                 placeholder="e.g. 10:00 AM – 11:00 AM"
-                className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                className="glass-input glass-input-blue" />
             </div>
             <div>
               <label className="block text-sm font-medium text-slate-300 mb-1.5">Hostel</label>
               <select value={sForm.hostel_name} onChange={e => setSForm(f => ({ ...f, hostel_name: e.target.value }))}
-                className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
-                {HOSTELS.map(h => <option key={h} value={h}>{h}</option>)}
+                className="glass-input glass-input-blue">
+                {HOSTELS.map(h => <option key={h} value={h} style={{ background: '#1e293b' }}>{h}</option>)}
               </select>
             </div>
             <div>
               <label className="block text-sm font-medium text-slate-300 mb-1.5">Max capacity</label>
               <input type="number" min={1} max={20} value={sForm.max_capacity}
                 onChange={e => setSForm(f => ({ ...f, max_capacity: Number(e.target.value) }))}
-                className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                className="glass-input glass-input-blue" />
             </div>
-            <button type="submit"
-              className="w-full bg-blue-500 hover:bg-blue-400 text-white font-semibold py-2.5 rounded-xl transition-colors">
+            <button type="submit" className="w-full btn-blue py-2.5">
               Create slot
             </button>
           </form>

@@ -41,44 +41,50 @@ export default function HousekeepingDashboard() {
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-8">
-      <div className="mb-6">
+      <div className="mb-7 animate-fadeInUp">
         <h1 className="text-2xl font-bold text-white" style={{ fontFamily: 'Outfit' }}>Housekeeping</h1>
-        <p className="text-slate-400 text-sm mt-0.5">{user?.full_name}</p>
+        <p className="text-slate-400 text-sm mt-1">{user?.full_name}</p>
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-3 gap-3 mb-7">
+      <div className="grid grid-cols-3 gap-3 mb-8">
         {[
-          { label: 'Pending',     val: counts.Pending,        color: 'text-yellow-400' },
-          { label: 'In Progress', val: counts['In Progress'], color: 'text-blue-400' },
-          { label: 'Completed',   val: counts.Completed,      color: 'text-emerald-400' },
-        ].map(s => (
-          <div key={s.label} className="bg-slate-900 border border-slate-800 rounded-xl p-4">
-            <div className={`text-2xl font-bold ${s.color}`} style={{ fontFamily: 'Outfit' }}>{s.val}</div>
-            <div className="text-slate-500 text-xs mt-0.5">{s.label}</div>
+          { label: 'Pending',     val: counts.Pending,        color: 'text-yellow-400', glow: 'from-yellow-400 to-amber-400' },
+          { label: 'In Progress', val: counts['In Progress'], color: 'text-blue-400',   glow: 'from-blue-400 to-cyan-400' },
+          { label: 'Completed',   val: counts.Completed,      color: 'text-emerald-400', glow: 'from-emerald-400 to-teal-400' },
+        ].map((s, i) => (
+          <div key={s.label} className="glass-card p-5 relative animate-fadeInUp" style={{ animationDelay: `${i * 80}ms` }}>
+            <div className={`text-3xl font-bold ${s.color}`} style={{ fontFamily: 'Outfit' }}>{s.val}</div>
+            <div className="text-slate-500 text-xs mt-1 tracking-wide uppercase">{s.label}</div>
+            <div className={`absolute top-0 left-4 right-4 h-px bg-gradient-to-r ${s.glow} opacity-40`} />
           </div>
         ))}
       </div>
 
       {/* Filter */}
-      <div className="flex gap-1.5 mb-6 flex-wrap">
+      <div className="flex gap-1.5 mb-7 flex-wrap">
         {['all', 'Pending', 'In Progress', 'Completed'].map(f => (
           <button key={f} onClick={() => setFilter(f)}
-            className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${
-              filter === f ? 'bg-purple-500 text-white' : 'bg-slate-800 text-slate-400 hover:text-white'
-            }`}>
+            className={`filter-pill ${filter === f ? 'active' : ''}`}>
             {f === 'all' ? 'All' : f}
           </button>
         ))}
       </div>
 
-      <div className="space-y-3">
-        {loading && <div className="text-slate-500 text-sm">Loading…</div>}
+      <div className="space-y-3 stagger">
+        {loading && (
+          <div className="flex items-center justify-center py-12">
+            <div className="loader" />
+          </div>
+        )}
         {!loading && filtered.length === 0 && (
-          <div className="text-slate-500 text-sm py-12 text-center">No requests</div>
+          <div className="text-center py-16 animate-fadeInUp">
+            <div className="text-4xl mb-3">✨</div>
+            <div className="text-slate-400 text-sm">No requests</div>
+          </div>
         )}
         {filtered.map(r => (
-          <div key={r.request_id} className="bg-slate-900 border border-slate-800 rounded-xl p-5">
+          <div key={r.request_id} className="glass-card p-5 animate-fadeInUp">
             <div className="flex items-start justify-between gap-3 mb-3">
               <div>
                 <div className="text-white font-medium">{r.task}</div>
@@ -86,20 +92,20 @@ export default function HousekeepingDashboard() {
                   Room {r.room_number}{r.floor ? `, Floor ${r.floor}` : ''} · {r.hostel_name}
                 </div>
                 {r.notes && <div className="text-slate-500 text-sm mt-0.5">{r.notes}</div>}
-                <div className="text-slate-600 text-xs mt-1">{new Date(r.created_at).toLocaleString()}</div>
+                <div className="text-slate-600 text-xs mt-1.5">{new Date(r.created_at).toLocaleString()}</div>
               </div>
               <StatusPill status={r.status} />
             </div>
             <div className="flex gap-2">
               {r.status === 'Pending' && (
                 <button onClick={() => updateStatus(r.request_id, 'In Progress')}
-                  className="text-sm bg-blue-500/15 hover:bg-blue-500/25 text-blue-300 px-4 py-2 rounded-lg transition-colors font-medium ring-1 ring-blue-500/30">
+                  className="action-btn action-btn-blue">
                   Start →
                 </button>
               )}
               {r.status === 'In Progress' && (
                 <button onClick={() => updateStatus(r.request_id, 'Completed')}
-                  className="text-sm bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 px-4 py-2 rounded-lg transition-colors font-medium ring-1 ring-emerald-500/30">
+                  className="action-btn action-btn-emerald">
                   ✓ Mark complete
                 </button>
               )}
